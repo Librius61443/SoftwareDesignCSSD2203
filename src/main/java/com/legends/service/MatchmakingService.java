@@ -13,15 +13,18 @@ public class MatchmakingService {
         void onInviteReceived(String senderUsername);
         void onInviteAccepted(String receiverUsername);
         void onInviteDeclined(String receiverUsername);
+        void onMatchCompleted(String summary);
     }
 
     // Maps online usernames to their specific active UI controllers
     private final Map<String, MatchObserver> activeClients;
     private final UserDAO userDAO;
+    private final PartyService partyService;
 
-    public MatchmakingService() {
+    public MatchmakingService(PartyService partyService) {
         this.activeClients = new HashMap<>();
-        this.userDAO = new UserDAO();
+        this.userDAO = AppServices.userDAO();
+        this.partyService = partyService;
     }
 
     // --------------------------------------------------------
@@ -55,12 +58,10 @@ public class MatchmakingService {
 
         // 2. Validate both users have saved parties (Conceptual placeholder for PartyDAO logic)
         // Both I and the invited player must have at least one saved party. [cite: 178]
-        /*
-        if (!partyDAO.hasSavedParties(senderUsername) || !partyDAO.hasSavedParties(targetUsername)) {
+        if (!partyService.hasSavedParties(senderUsername) || !partyService.hasSavedParties(targetUsername)) {
             System.err.println("Both players must have at least one saved party to battle.");
             return false;
         }
-        */
 
         // 3. OBSERVER PATTERN: Notify the target user if they are currently active/online
         MatchObserver targetObserver = activeClients.get(targetUsername);
@@ -84,9 +85,18 @@ public class MatchmakingService {
             if (senderObserver != null) {
                 senderObserver.onInviteAccepted(receiverUsername);
             }
-            
-            // At this point, you would transition both users using the State Pattern (e.g., PartySelectionState)
-            
+
+            PvpBattleService.PvpBattleResult result =
+                AppServices.pvpBattleService().battleFirstSavedParties(senderUsername, receiverUsername);
+            String summary = result.winner() + " defeated " + result.loser() + " in PvP.";
+
+            MatchObserver receiverObserver = activeClients.get(receiverUsername);
+            if (senderObserver != null) {
+                senderObserver.onMatchCompleted(summary);
+            }
+            if (receiverObserver != null) {
+                receiverObserver.onMatchCompleted(summary);
+            }
         } else {
             System.out.println(receiverUsername + " declined the invite.");
             if (senderObserver != null) {

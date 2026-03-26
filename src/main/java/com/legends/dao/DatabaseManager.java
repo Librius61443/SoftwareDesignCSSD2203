@@ -23,8 +23,7 @@ public class DatabaseManager {
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
             System.out.println("Database connection established successfully.");
         } catch (SQLException e) {
-            System.err.println("Failed to connect to the database.");
-            e.printStackTrace();
+            System.err.println("Failed to connect to the database. Falling back to local in-memory storage.");
         }
     }
 
@@ -49,7 +48,6 @@ public class DatabaseManager {
                 System.out.println("Database connection closed.");
             } catch (SQLException e) {
                 System.err.println("Failed to close the database connection.");
-                e.printStackTrace();
             }
         }
     }

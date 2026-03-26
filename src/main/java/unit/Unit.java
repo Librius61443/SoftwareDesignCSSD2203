@@ -20,9 +20,12 @@ public interface Unit {
   void takeDamage(int dmg);
   void heal(int amount);
   void restoreMana(int amount);
+  default void burnManaByPercent(int percent) {}
 
   boolean stunned();
   void    clearStun();
+  default void setStunned(boolean stunned) {}
+  default boolean isAlive() { return hp() > 0; }
 
   Action chooseAction(List<Unit> players, List<Unit> enemies, Queue<Unit> waitQueue);
 }

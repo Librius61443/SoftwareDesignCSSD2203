@@ -10,19 +10,29 @@ public final class Party {
 
   private final List<Hero> heroes = new ArrayList<>();
   private int              gold   = 0;
+  private int              itemScore = 0;
 
   private Party() {}
 
+  public static Party empty() {
+    return new Party();
+  }
+
   /** Creates a party with one hero of the given name. */
   public static Party singleStarterHero(String name) {
+    return singleStarterHero(name, HeroClass.WARRIOR);
+  }
+
+  public static Party singleStarterHero(String name, HeroClass heroClass) {
     Party p = new Party();
-    p.heroes.add(new Hero(name));
+    p.heroes.add(new Hero(name, heroClass));
     return p;
   }
 
 
   public List<Hero> heroes()           { return Collections.unmodifiableList(heroes); }
   public int        gold()             { return gold; }
+  public int        itemScore()        { return itemScore; }
 
   /** Sum of all hero levels (used for encounter-chance scaling). */
   public int cumulativeLevel() {
@@ -56,6 +66,22 @@ public final class Party {
   public void addHero(Hero hero) {
     if (isFull()) return;
     heroes.add(Objects.requireNonNull(hero));
+  }
+
+  public void setCurrentClassForAll(HeroClass heroClass) {
+    heroes.forEach(hero -> hero.setCurrentClass(heroClass));
+  }
+
+  public void recordItemPurchase(int itemCost) {
+    itemScore += Math.max(0, itemCost) * 5;
+  }
+
+  public Party copy() {
+    Party copy = new Party();
+    copy.gold = gold;
+    copy.itemScore = itemScore;
+    heroes.stream().map(Hero::copy).forEach(copy.heroes::add);
+    return copy;
   }
 
 }

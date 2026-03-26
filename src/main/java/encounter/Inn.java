@@ -39,20 +39,7 @@ final class InnEncounter implements Encounter {
   @Override
   public EncounterOutcome resolve(RoomContext ctx, Party party) {
     party.fullRestore();
-    autoBuyIfAffordable(party);
-    if (ctx.roomIndex() <= 10) {
-      recruitService.maybeRecruit(party, ctx.roomIndex());
-    }
     return EncounterOutcome.NEUTRAL;
-  }
-
-  private void autoBuyIfAffordable(Party party) {
-    if (party.gold() < 200) return;
-    List<Item> sale   = shop.itemsForSale();
-    Item       choice = sale.get(rng.nextInt(0, sale.size() - 1));
-    if (party.gold() >= choice.costGold()) {
-      shop.buy(party, choice);
-    }
   }
 }
 
@@ -167,7 +154,11 @@ final class RecruitService {
     if (party.gold() < cost) return;
     if (cost > 0) party.spendGold(cost);
 
-    Hero recruit = new Hero("Recruit-" + roomIndex + "-" + rng.nextInt(100, 999));
+    HeroClass[] classes = HeroClass.values();
+    Hero recruit = new Hero(
+        "Recruit-" + roomIndex + "-" + rng.nextInt(100, 999),
+        classes[rng.nextInt(0, classes.length - 1)]
+    );
     while (recruit.level() < level) recruit.gainExp(999_999);
     party.addHero(recruit);
   }

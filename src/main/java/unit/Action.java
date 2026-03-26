@@ -20,7 +20,7 @@ class AttackAction implements Action {
     List<Unit> foes   = actor.team() == Team.PLAYER ? enemies : players;
     Unit       target = lowestHpAlive(foes);
     if (target == null) return;
-    target.takeDamage(Math.max(0, actor.attack() - target.defense()));
+    CombatRules.performAttack(actor, target, foes);
   }
 
   private Unit lowestHpAlive(List<Unit> units) {
@@ -53,5 +53,28 @@ class WaitAction implements Action {
   @Override
   public void execute(Unit actor, List<Unit> players, List<Unit> enemies) {
     // Resolved by TurnEngine after all non-waiting units have acted.
+  }
+}
+
+class CastAbilityAction implements Action {
+
+  private final HeroAbility ability;
+
+  CastAbilityAction(HeroAbility ability) {
+    this.ability = ability;
+  }
+
+  @Override public ActionType type() { return ActionType.CAST; }
+
+  @Override
+  public void execute(Unit actor, List<Unit> players, List<Unit> enemies) {
+    if (!(actor instanceof Hero hero)) return;
+    List<Unit> allies = actor.team() == Team.PLAYER ? players : enemies;
+    List<Unit> foes = actor.team() == Team.PLAYER ? enemies : players;
+    ability.execute(hero, allies, foes);
+  }
+
+  HeroAbility ability() {
+    return ability;
   }
 }

@@ -1,5 +1,13 @@
 {
-  "java.project.sourcePaths": ["src/main/java", "src/test/java"],
+  "java.project.sourcePaths": [
+    "src/main/java",
+    "src/test/java",
+    "battle",
+    "campaign",
+    "encounter",
+    "rng",
+    "unit"
+  ],
   "java.project.referencedLibraries": [
     "lib/junit-platform-console-standalone-1.10.2.jar",
     "lib/mysql-connector-j-8.3.0.jar"

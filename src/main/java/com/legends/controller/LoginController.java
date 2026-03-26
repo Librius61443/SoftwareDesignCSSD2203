@@ -2,7 +2,9 @@ package com.legends.controller;
 
 import com.legends.dao.UserDAO;
 import com.legends.model.User;
+import com.legends.service.AppServices;
 import com.legends.view.LoginView;
+import com.legends.view.HubView;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -13,7 +15,7 @@ public class LoginController {
 
     public LoginController(LoginView loginView) {
         this.loginView = loginView;
-        this.userDAO = new UserDAO();
+        this.userDAO = AppServices.userDAO();
         
         this.loginView.addLoginListener(new LoginListener());
         this.loginView.addRegisterListener(new RegisterListener());
@@ -34,7 +36,10 @@ public class LoginController {
 
             if (authenticatedUser != null) {
                 loginView.displaySuccessMessage("Login successful!");
-                loginView.dispose(); 
+                loginView.dispose();
+                HubView hubView = new HubView(authenticatedUser.getUsername());
+                new PVPController(hubView, authenticatedUser, AppServices.matchmakingService());
+                hubView.setVisible(true);
             } else {
                 loginView.displayErrorMessage("Invalid username or password.");
             }

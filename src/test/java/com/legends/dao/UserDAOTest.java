@@ -1,12 +1,8 @@
 package com.legends.dao;
 
 import com.legends.model.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,22 +15,7 @@ public class UserDAOTest {
     @BeforeEach
     public void setUp() {
         userDAO = new UserDAO();
-        cleanUpDatabase();
-    }
-
-    @AfterEach
-    public void tearDown() {
-        cleanUpDatabase();
-    }
-
-    private void cleanUpDatabase() {
-        try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("DELETE FROM users WHERE username = ?")) {
-            stmt.setString(1, testUsername);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        userDAO.resetInMemoryStore();
     }
 
     @Test

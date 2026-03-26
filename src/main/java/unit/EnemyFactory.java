@@ -34,8 +34,8 @@ public final class EnemyFactory {
       int L = clamp(levels.get(i), 1, 10);
       units.add(new EnemyUnit(
           "Enemy-" + (i + 1), L,
-          5 + (L * 2),   // attack
-          5 + (L * 2),   // defense
+          4 + (L * 2),   // attack
+          2 + L,         // defense
           100 + (L * 15), // maxHp
           50  + (L * 5)   // maxMana
       ));

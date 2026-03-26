@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Legends (javac)",
+      "type": "shell",
+      "command": "/bin/zsh",
+      "args": [
+        "-lc",
+        "mkdir -p out && find src/main/java -name \"*.java\" -print0 | xargs -0 /Library/Java/JavaVirtualMachines/jdk-22.jdk/Contents/Home/bin/javac -cp \"lib/mysql-connector-j-8.3.0.jar\" -d out"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    }
+  ]
+}

@@ -20,6 +20,7 @@ public final class EnemyUnit implements Unit {
   private final int     maxMana;
   private       int     mana;
   private       boolean stunned = false;
+  private       boolean usedCriticalDefend = false;
 
   public EnemyUnit(String name, int level, int attack, int defense, int maxHp, int maxMana) {
     this.name    = name;
@@ -48,11 +49,22 @@ public final class EnemyUnit implements Unit {
 
   @Override public boolean stunned()   { return stunned; }
   @Override public void    clearStun() { stunned = false; }
+  @Override public void    setStunned(boolean stunned) { this.stunned = stunned; }
+  @Override public void    burnManaByPercent(int percent) {
+    int manaLoss = Math.max(1, (maxMana * percent) / 100);
+    mana = Math.max(0, mana - manaLoss);
+  }
 
   @Override
   public Action chooseAction(List<Unit> players, List<Unit> enemies, Queue<Unit> waitQueue) {
-    if (hp <= 0)           return new WaitAction();
-    if (hp < (maxHp / 5)) return new DefendAction();
+    if (hp <= 0) return new WaitAction();
+    if (hp >= (maxHp / 5)) {
+      usedCriticalDefend = false;
+    }
+    if (hp < (maxHp / 5) && !usedCriticalDefend) {
+      usedCriticalDefend = true;
+      return new DefendAction();
+    }
     return new AttackAction();
   }
 }

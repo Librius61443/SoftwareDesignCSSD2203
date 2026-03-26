@@ -1,28 +1,27 @@
 package com.legends.service;
 
-import com.legends.dao.DatabaseManager;
 import com.legends.dao.UserDAO;
 import com.legends.model.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import unit.Hero;
+import unit.Party;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MatchmakingTest {
 
     private MatchmakingService matchmakingService;
+    private PartyService partyService;
     private UserDAO userDAO;
     private final String player1 = "testChallenger";
     private final String player2 = "testOpponent";
 
-    private class TestObserver implements MatchmakingService.MatchObserver {
+    private static class TestObserver implements MatchmakingService.MatchObserver {
         boolean inviteReceived = false;
         boolean inviteAccepted = false;
         boolean inviteDeclined = false;
+        String matchSummary;
 
         @Override
         public void onInviteReceived(String senderUsername) {
@@ -38,31 +37,32 @@ public class MatchmakingTest {
         public void onInviteDeclined(String receiverUsername) {
             inviteDeclined = true;
         }
+
+        @Override
+        public void onMatchCompleted(String summary) {
+            matchSummary = summary;
+        }
     }
 
     @BeforeEach
     public void setUp() {
-        matchmakingService = new MatchmakingService();
-        userDAO = new UserDAO();
-        cleanUpDatabase();
+        userDAO = AppServices.userDAO();
+        userDAO.resetInMemoryStore();
+        partyService = AppServices.partyService();
+        partyService.reset();
+        matchmakingService = new MatchmakingService(partyService);
+
         userDAO.createUser(new User(player1, "pass1"));
         userDAO.createUser(new User(player2, "pass2"));
-    }
 
-    @AfterEach
-    public void tearDown() {
-        cleanUpDatabase();
-    }
+        Party challengerParty = Party.singleStarterHero("Challenger");
+        challengerParty.addHero(new Hero("Backup"));
+        partyService.setActiveParty(player1, challengerParty);
+        partyService.saveActiveParty(player1);
 
-    private void cleanUpDatabase() {
-        try (Connection conn = DatabaseManager.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("DELETE FROM users WHERE username IN (?, ?)")) {
-            stmt.setString(1, player1);
-            stmt.setString(2, player2);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Party opponentParty = Party.singleStarterHero("Opponent");
+        partyService.setActiveParty(player2, opponentParty);
+        partyService.saveActiveParty(player2);
     }
 
     @Test
@@ -91,14 +91,17 @@ public class MatchmakingTest {
     }
 
     @Test
-    public void testRespondToInviteAccepted() {
+    public void testRespondToInviteAcceptedCompletesMatch() {
         TestObserver challengerObserver = new TestObserver();
+        TestObserver opponentObserver = new TestObserver();
         matchmakingService.registerObserver(player1, challengerObserver);
+        matchmakingService.registerObserver(player2, opponentObserver);
 
         matchmakingService.respondToInvite(player1, player2, true);
 
         assertTrue(challengerObserver.inviteAccepted);
-        assertFalse(challengerObserver.inviteDeclined);
+        assertNotNull(challengerObserver.matchSummary);
+        assertNotNull(opponentObserver.matchSummary);
     }
 
     @Test
